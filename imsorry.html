@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>I'm Sorry App</title>
+  <style>
+    :root{--bg:#0b0b0f;--card:#0f1724;--accent:#ff6b81;--muted:#9aa4b2}
+    html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial}
+    body{background:linear-gradient(180deg,#02040a 0%, #071026 100%);display:flex;align-items:center;justify-content:center;padding:20px;color:#e6eef8;overflow:hidden}
+    .app{width:100%;max-width:760px;background:rgba(255,255,255,0.03);border-radius:12px;box-shadow:0 10px 30px rgba(2,6,23,0.7);overflow:hidden;position:relative}
+    .boot{height:320px;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:30px;text-align:center}
+    .logo{font-size:40px;font-weight:700;letter-spacing:2px;color:var(--accent);opacity:0;transform:translateY(10px);animation:logoIn 1s forwards}
+    .sub{margin-top:10px;color:var(--muted);opacity:0;transform:translateY(6px);animation:subIn 1s 0.25s forwards}
+    @keyframes logoIn{to{opacity:1;transform:none}}@keyframes subIn{to{opacity:1;transform:none}}
+    .main{padding:28px;display:none;flex-direction:column;gap:16px}
+    .row{display:flex;gap:12px;align-items:center}
+    input[type=text]{flex:1;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:inherit;font-size:16px}
+    button{padding:11px 16px;border-radius:10px;border:0;background:linear-gradient(90deg,var(--accent),#ff9aa2);color:white;font-weight:600;cursor:pointer}
+    .result{margin-top:18px;white-space:pre-wrap;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);max-height:60vh;overflow:auto;font-size:16px;line-height:1.6}
+    .small{font-size:13px;color:var(--muted)}
+    .fadeOut{animation:fadeOut 0.6s forwards} @keyframes fadeOut{to{opacity:0;transform:translateY(-8px);height:0}}
+    .center{display:flex;align-items:center;justify-content:center}
+    .typing-line{display:block;}
+    .music-controls{position:absolute;top:12px;right:12px;color:white;font-size:18px;cursor:pointer;user-select:none;background:rgba(0,0,0,0.3);padding:6px 10px;border-radius:6px;}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="boot" id="boot">
+      <div class="logo">I’m Sorry</div>
+      <div class="sub">Please wait...</div>
+    </div>
+    <div class="main" id="main">
+      <div style="padding:0 28px">
+        <div class="small">Type a name and press "Show".</div>
+      </div>
+      <div style="padding:0 28px 28px 28px">
+        <div class="row">
+          <input id="nameInput" type="text" placeholder="Enter name" />
+          <button id="showBtn">Show</button>
+        </div>
+        <div class="result" id="result" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <iframe id="bgMusic" width="0" height="0" src="https://www.youtube.com/embed/ZpsKr_Ng6vk?autoplay=1&loop=1&playlist=ZpsKr_Ng6vk&mute=0" frameborder="0" allow="autoplay" allowfullscreen style="display:none"></iframe>
+
+    <div class="music-controls" id="musicToggle">🔊</div>
+  </div>
+
+  <script>
+    let isMuted=false;
+    const bgMusic=document.getElementById('bgMusic');
+    const toggleBtn=document.getElementById('musicToggle');
+    toggleBtn.addEventListener('click',()=>{
+      isMuted=!isMuted;
+      bgMusic.src = isMuted 
+        ? 'https://www.youtube.com/embed/ZpsKr_Ng6vk?autoplay=1&loop=1&playlist=ZpsKr_Ng6vk&mute=1'
+        : 'https://www.youtube.com/embed/ZpsKr_Ng6vk?autoplay=1&loop=1&playlist=ZpsKr_Ng6vk&mute=0';
+      toggleBtn.textContent = isMuted ? '🔇' : '🔊';
+    });
+
+    window.addEventListener('load', ()=>{
+      setTimeout(()=>{
+        const boot = document.getElementById('boot');
+        boot.classList.add('fadeOut');
+        setTimeout(()=>{ boot.style.display='none'; document.getElementById('main').style.display='flex'; }, 650);
+      }, 1800);
+    });
+
+    const specialName='kainat';
+    const showBtn=document.getElementById('showBtn');
+    const input=document.getElementById('nameInput');
+    const result=document.getElementById('result');
+
+    showBtn.addEventListener('click',generate);
+    input.addEventListener('keydown',(e)=>{ if(e.key==='Enter') generate(); });
+
+    function generate(){
+      const name=input.value.trim();
+      if(!name){ result.innerText="Pehle naam likho (Enter a name)."; return }
+      result.innerHTML='';
+      if(name.toLowerCase()===specialName){
+        typeText(specialApology());
+      } else {
+        result.innerHTML=`<strong>Sorry, it's not for you.</strong>`;
+      }
+    }
+
+    function typeText(paragraphs){
+      let lines=paragraphs.split('\n');
+      let i=0;
+      function typeLine(){
+        if(i>=lines.length) return;
+        let span=document.createElement('span');
+        span.className='typing-line';
+        result.appendChild(span);
+        let line=lines[i];
+        let j=0;
+        function typeChar(){
+          if(j<line.length){
+            span.innerHTML+=line[j];
+            j++;
+            setTimeout(typeChar,25);
+          } else { i++; result.appendChild(document.createElement('br')); setTimeout(typeLine,80); }
+        }
+        typeChar();
+      }
+      typeLine();
+    }
+
+    function specialApology(){
+      return `❤️ Kainat ❤️, mujhe pata hai ke alfaaz kabhi kabhi kam parh jaate hain jab dil toot chuka ho 💔… lekin phir bhi main apni saari sachchai tumhare saamne rakhna chahta hoon 🙏. Har saans jo maine tumhare bina li, us mein tumhara naam chup-chup sa goonjta raha 🌙✨. Jo galti hui, woh sirf lafzon ka masla nahi tha — woh meri bewakoofi 😔, meri na-samajh 😞 aur meri kamiyaan thi jo mujhe tumhari asli ahmiyat samajhne se rokti rahi. Main dil se maafi maangta hoon ❤️‍🩹: mujhe maaf kar do, Kainat. Mujhe apne gusse, apne alfaz aur apne faislon ko sudharne ka mauqa do 🙇‍♂️. Main wada karta hoon ke main badal jaunga — sirf zubani wada nahi, balki roz chhoti-chhoti koshishon se tumhari khushi wapas launga 🌸😊. Har lafz jo main keh raha hoon, woh mere Dil ke dard ka asli ehsaas rakhta hai 💖.\n\nTumne hamesha mujhse sachchai, pyar aur samajh ki umeed rakhi 💕… aur main chahta hoon ke tum dobara woh umeed rakh sako ✨. Agar tum mujhe ek chhota sa mauqa do, main tumhare saath phir se woh haseen lamhe jeena chahta hoon — bina darr, bina shikayaat, sirf pyar ke saath 💫🥺. Main tumhari muskurahat ko apni zimmedari bana lunga 😊🌷. Tumhari har baat sununga 👂, tumhari har pareshaani mein saath dunga 🤝, aur tumhari har chhoti khushi ko apni priority banaunga 🌼. Kainat, tum meri duniya ho 🌍❤️… aur main apni har galti ko sudharne ke लिए poori koshish karunga. Saccha pyaar har zakhm bhar deta hai 💗… mujhe sirf tumhari ek chhoti si ‘haan’ chahiye. Sorry, Kainat… dil se, sach much 💞.`;
+    }
+  </script>
+</body>
+</html>
